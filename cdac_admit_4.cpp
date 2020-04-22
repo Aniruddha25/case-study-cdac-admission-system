@@ -14,6 +14,7 @@
 #define condition2   students[i].get_id() == preferences[k].getFormNo()
 #define condition3   preferences[k].getCenterId() == capacities[r].getCenterId()
 #define condition4   preferences[k].getCourseName() == capacities[r].getCourseName()
+#define condition5   students[i].get_rank_b() == -1 && students[i].get_rank_c() == -1
 using namespace std;
 class student {
 private:
@@ -406,7 +407,6 @@ vector<student> students;
 vector <eligibility> eligibities;
 vector <capacity> capacities;
 vector <preference> preferences;
-vector <double> Qmarks;
 void load_courses() {
 	ifstream fp;
 	string line;
@@ -535,10 +535,7 @@ void load_eligibility()
 
 		eligibities.push_back(e);
 	}
-	for(unsigned i=0;i<eligibities.size();i++)
-	{
-		Qmarks.push_back(eligibities[i].get_marks());
-	}
+
 }
 void load_capacity()
 {
@@ -835,6 +832,10 @@ bool sort_by_C (student a,student b)
 	return (rank_1 < rank_2);
 }
 void round_1_allocation() {
+	double qmarks;
+	cout<<"Enter qualifying marks"<<endl;
+	cin>>qmarks;//qmarks=55 for first round
+	//qmarks=50 for second round
 	for(int n=0;n<10;n++)
 	{
 		for(unsigned i=0;i<students.size();i++)
@@ -846,11 +847,11 @@ void round_1_allocation() {
 				{
 					if(condition2 && preferences[k].getCourseName() == courses[j].get_name())
 					{
-						if(courses[j].get_section() == "A")
+
+						sort(students.begin(),students.end(),sort_by_A);
+
+						if(students[i].get_degree_marks()>qmarks)
 						{
-							sort(students.begin(),students.end(),sort_by_A);
-
-
 							students[i].set_course("PG_DGI");
 							for(unsigned r =0;r<capacities.size();r++)
 							{
@@ -865,59 +866,65 @@ void round_1_allocation() {
 								}
 							}
 
-
-
-
 						}
-						if(courses[j].get_section()== "C")
+
+
+
+
+						if( students[i].get_rank_c()!=-1)
 						{
 							sort(students.begin(),students.end(),sort_by_C);
-
-							students[i].set_course("PG_DESD");
-							for(unsigned r =0;r<capacities.size();r++)
+							if(students[i].get_degree_marks()>qmarks)
 							{
-								if(condition3 && condition4 && preferences[k].getPrefNo() == (n+1))
+								students[i].set_course("PG_DESD");
+								for(unsigned r =0;r<capacities.size();r++)
 								{
-									students[i].set_prno(n+1);
-									students[i].set_cid(preferences[k].getCenterId());
-									if(capacities[r].get_filled_capacity()< capacities[r].get_max_capacity())
+									if(condition3 && condition4 && preferences[k].getPrefNo() == (n+1))
 									{
-										capacities[r].set_filled_capacity(1+capacities[r].get_filled_capacity());
+										students[i].set_prno(n+1);
+										students[i].set_cid(preferences[k].getCenterId());
+										if(capacities[r].get_filled_capacity()< capacities[r].get_max_capacity())
+										{
+											capacities[r].set_filled_capacity(1+capacities[r].get_filled_capacity());
+										}
 									}
 								}
 							}
 
 						}
-						if(courses[j].get_section() == "B")
+						if(students[i].get_rank_b()!=1)
 						{
 							sort(students.begin(),students.end(),sort_by_B);
-
-							students[i].set_course(courses[j].get_name());
-
-
-							for(unsigned r =0;r<capacities.size();r++)
+							if(students[i].get_degree_marks()>qmarks)
 							{
-								if(condition3 && condition4 && preferences[k].getPrefNo() == (n+1))
-								{
-									students[i].set_prno(n+1);
-									students[i].set_cid(preferences[k].getCenterId());
-									if(capacities[r].get_filled_capacity()< capacities[r].get_max_capacity())
-									{
-										capacities[r].set_filled_capacity(1+capacities[r].get_filled_capacity());
-									}
+								students[i].set_course(courses[j].get_name());
 
+
+								for(unsigned r =0;r<capacities.size();r++)
+								{
+									if(condition3 && condition4 && preferences[k].getPrefNo() == (n+1))
+									{
+										students[i].set_prno(n+1);
+										students[i].set_cid(preferences[k].getCenterId());
+										if(capacities[r].get_filled_capacity()< capacities[r].get_max_capacity())
+										{
+											capacities[r].set_filled_capacity(1+capacities[r].get_filled_capacity());
+										}
+
+									}
 								}
 							}
 						}
 					}
 				}
 			}
-		}
 
+		}
 	}
 }
 void round_2_allocation()
 {
+	cout<<"------Round2---------"<<endl;
 	for (size_t i=0 ; i<students.size(); i++ ){
 		if (students[i].get_cid()!="NA"){
 			if (students[i].get_payment()!=11800)
